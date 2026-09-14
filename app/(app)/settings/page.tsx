@@ -4,9 +4,8 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { COMPANY_TYPES, CATEGORIES } from '@/lib/epr';
 
-// Company details page. Lets a signed-in user view and edit everything about
-// their company after onboarding, including packaging category and the annual
-// plastic weight the dashboard uses to estimate liability.
+// Company details page. Edit company info, and set a password so you can sign
+// in without an email link next time.
 export default function Settings() {
   const router = useRouter();
   const [companyId, setCompanyId] = useState<string | null>(null);
@@ -19,6 +18,13 @@ export default function Settings() {
     primary_packaging_category: 'category_1_rigid', existing_cpcb_reg: '',
     annual_weight_kg: '',
   });
+
+  // Password state
+  const [pw, setPw] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [pwErr, setPwErr] = useState('');
+  const [pwSaved, setPwSaved] = useState(false);
+  const [savingPw, setSavingPw] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -65,6 +71,18 @@ export default function Settings() {
     router.refresh();
   }
 
+  async function savePassword() {
+    setPwErr(''); setPwSaved(false);
+    if (pw.length < 8) { setPwErr('Use at least 8 characters.'); return; }
+    if (pw !== pw2) { setPwErr('The two passwords do not match.'); return; }
+    setSavingPw(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.updateUser({ password: pw });
+    setSavingPw(false);
+    if (error) { setPwErr(error.message); return; }
+    setPwSaved(true); setPw(''); setPw2('');
+  }
+
   if (loading) return <div className="narrow"><p className="muted">Loading your details.</p></div>;
 
   return (
@@ -101,6 +119,22 @@ export default function Settings() {
             {saving ? 'Saving' : 'Save changes'}
           </button>
           {saved && <span className="badge badge-green">Saved</span>}
+        </div>
+      </div>
+
+      <h2 style={{ marginTop: '1.5rem' }}>Password</h2>
+      <div className="card">
+        <p className="muted">Set a password so you can sign in without an email link next time.</p>
+        <label>New password</label>
+        <input type="password" value={pw} onChange={(e) => { setPw(e.target.value); setPwSaved(false); }} placeholder="At least 8 characters" />
+        <label>Confirm password</label>
+        <input type="password" value={pw2} onChange={(e) => { setPw2(e.target.value); setPwSaved(false); }} />
+        {pwErr && <p className="error">{pwErr}</p>}
+        <div className="row" style={{ marginTop: '1rem' }}>
+          <button className="btn" onClick={savePassword} disabled={savingPw}>
+            {savingPw ? 'Saving' : 'Set password'}
+          </button>
+          {pwSaved && <span className="badge badge-green">Password set</span>}
         </div>
       </div>
     </div>
