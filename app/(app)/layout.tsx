@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
-// Protects every app page, refreshes nothing (middleware does that), and makes
-// sure a signed-in user without a company is routed to onboarding.
+// Protects every app page and makes sure a signed-in user without a company is
+// routed to onboarding.
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -25,6 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <Link href="/dashboard">Dashboard</Link>
               <Link href="/documents">Documents</Link>
               <Link href="/downloads">Downloads</Link>
+              <Link href="/settings">Company details</Link>
             </>
           )}
           <form action="/auth/signout" method="post" style={{ display: 'inline' }}>
