@@ -7,6 +7,7 @@ export const COMPANY_TYPES = [
   'Snack/Chips Manufacturer',
   'Tea Estate',
   'FMCG',
+  'Brand Onwers',
   'Other',
 ] as const;
 
